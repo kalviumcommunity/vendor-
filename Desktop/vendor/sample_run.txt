@@ -1,0 +1,79 @@
+=====================================================================================
+MULTI-TURN RAG CHAT LOOP & CONTEXT WINDOW TRIMMING DEMONSTRATION
+Configured Token Budget Limit: 300 Tokens
+=====================================================================================
+
+[Turn 0 - Session Initialized]
+  * System Prompt: "You are an expert Vendor Data Pipeline Assistant. Provide concise, accurate answers strictly using the provided context."
+  * Initial Baseline Tokens: 28 / 300
+
+=====================================================================================
+--- TURN 1: USER QUERY & RAG CONTEXT INGESTION ---
+User Query:      "What is the data retention policy for vendor transaction logs?"
+Retrieved Chunk: "Vendor SLA Sec 5: Transaction logs are retained for 90 days in en..."
+
+[Token Measurement & Window Status for Turn 1]:
+  * Naive Unmanaged Tokens:     97 tokens [OK]
+  * Managed Tokens Before Trim: 76 tokens
+  * Managed Tokens After Trim:  76 tokens [WITHIN BUDGET OK]
+  * System Message Preserved:   "You are an expert Vendor Data Pipeline Assist..." [LOCKED & SAFE]
+  * Total Active Turns in Window: 2 messages
+
+=====================================================================================
+--- TURN 2: USER QUERY & RAG CONTEXT INGESTION ---
+User Query:      "What encryption standard is enforced during data ingestion?"
+Retrieved Chunk: "Vendor Sec 1: All incoming client datasets must be ingested via T..."
+
+[Token Measurement & Window Status for Turn 2]:
+  * Naive Unmanaged Tokens:     162 tokens [OK]
+  * Managed Tokens Before Trim: 153 tokens
+  * Managed Tokens After Trim:  153 tokens [WITHIN BUDGET OK]
+  * System Message Preserved:   "You are an expert Vendor Data Pipeline Assist..." [LOCKED & SAFE]
+  * Total Active Turns in Window: 4 messages
+
+=====================================================================================
+--- TURN 3: USER QUERY & RAG CONTEXT INGESTION ---
+User Query:      "What happens if our pipeline exceeds the 50,000 TPS ingestion rate?"
+Retrieved Chunk: "Vendor Sec 3: Ingestion throughput is rated for 50,000 TPS. Exces..."
+
+[Token Measurement & Window Status for Turn 3]:
+  * Naive Unmanaged Tokens:     242 tokens [OK]
+  * Managed Tokens Before Trim: 234 tokens
+  * Managed Tokens After Trim:  234 tokens [WITHIN BUDGET OK]
+  * System Message Preserved:   "You are an expert Vendor Data Pipeline Assist..." [LOCKED & SAFE]
+  * Total Active Turns in Window: 6 messages
+
+=====================================================================================
+--- TURN 4: USER QUERY & RAG CONTEXT INGESTION ---
+User Query:      "How fast does the disaster recovery team respond to Critical Severity 1 outages?"
+Retrieved Chunk: "Vendor Sec 4: Critical Severity 1 incident remediation begins wit..."
+
+[Token Measurement & Window Status for Turn 4]:
+  * Naive Unmanaged Tokens:     333 tokens [EXCEEDED LIMIT! WARNING]
+  * Managed Tokens Before Trim: 328 tokens
+  * [TRIM ACTION] Context Manager pruned 1 oldest message(s) to prevent overflow!
+  * Managed Tokens After Trim:  280 tokens [WITHIN BUDGET OK]
+  * System Message Preserved:   "You are an expert Vendor Data Pipeline Assist..." [LOCKED & SAFE]
+  * Total Active Turns in Window: 7 messages
+
+=====================================================================================
+--- TURN 5: USER QUERY & RAG CONTEXT INGESTION ---
+User Query:      "What sanitation standards apply upon contract termination?"
+Retrieved Chunk: "Vendor Sec 5.2: Storage sanitation strictly conforms to DoD 5220...."
+
+[Token Measurement & Window Status for Turn 5]:
+  * Naive Unmanaged Tokens:     410 tokens [EXCEEDED LIMIT! WARNING]
+  * Managed Tokens Before Trim: 371 tokens
+  * [TRIM ACTION] Context Manager pruned 2 oldest message(s) to prevent overflow!
+  * Managed Tokens After Trim:  294 tokens [WITHIN BUDGET OK]
+  * System Message Preserved:   "You are an expert Vendor Data Pipeline Assist..." [LOCKED & SAFE]
+  * Total Active Turns in Window: 7 messages
+
+=====================================================================================
+FINAL EVALUATION SUMMARY: NAIVE vs MANAGED CONVERSATION
+-------------------------------------------------------------------------------------
+Total Multi-Turn Interactions: 5 Turns
+Naive Unmanaged History:       410 Tokens -> Status: FAILS (Exceeds 300 token budget)
+Managed History with Trimming: 294 Tokens -> Status: SUCCEEDS (Fits inside 300 budget)
+System Message Integrity:      100% PRESERVED throughout entire session
+=====================================================================================
