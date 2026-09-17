@@ -1,5 +1,5 @@
 {
-  "total_docs": 47,
+  "total_docs": 49,
   "chunks": [
     {
       "chunk_id": "api_reference-v1_0-header_forma-001",
@@ -563,6 +563,30 @@
       "page": 2,
       "text": "- [ ] Upgrade authentication service to request OAuth 2.0 granular scopes (`users:read`, `users:write`).\n- [ ] Add `Nova-Version: 2026-08-01` header to API client defaults.\n- [ ] Query `/api/v4/roles` to map legacy string roles to new `role_id` UUIDs.\n- [ ] Pass `tenant_id` on all resource creation requests.\n- [ ] Migrate long-polling endpoints to WebSockets stream `wss://stream.novacloud.io/v4/events`.",
       "source_url": "/docs/v4.0/migration_guide/migration-checklist",
+      "metadata": {}
+    },
+    {
+      "chunk_id": "custom_api_1789633382-v3_0-response_exa-001",
+      "document_id": "custom_api_1789633382",
+      "title": "Custom Payments Gateway",
+      "version": "v3.0",
+      "document_type": "api_reference",
+      "section": "Response Example (200 OK)",
+      "page": 1,
+      "text": "Section: Payments\nStatus: active\n\nCustom billing charge endpoint for NovaAPI v3.\n\n- **Method**: `POST`\n- **Path**: `/api/v3/payments/custom-charge`\n\n- `Authorization`: Bearer <token>\n\n- `amount` (integer, required): Amount in cents\n\n```json\n{\"amount\": 5000}\n```\n\n```json\n{\"charge_id\": \"ch_991823\"}\n```",
+      "source_url": "/docs/v3.0/api_reference/response-example-(200-ok)",
+      "metadata": {}
+    },
+    {
+      "chunk_id": "custom_api_1789633415-v3_0-response_exa-001",
+      "document_id": "custom_api_1789633415",
+      "title": "Custom Payments Gateway",
+      "version": "v3.0",
+      "document_type": "api_reference",
+      "section": "Response Example (200 OK)",
+      "page": 1,
+      "text": "Section: Payments\nStatus: active\n\nCustom billing charge endpoint for NovaAPI v3.\n\n- **Method**: `POST`\n- **Path**: `/api/v3/payments/custom-charge`\n\n- `Authorization`: Bearer <token>\n\n- `amount` (integer, required): Amount in cents\n\n```json\n{\"amount\": 5000}\n```\n\n```json\n{\"charge_id\": \"ch_991823\"}\n```",
+      "source_url": "/docs/v3.0/api_reference/response-example-(200-ok)",
       "metadata": {}
     }
   ]

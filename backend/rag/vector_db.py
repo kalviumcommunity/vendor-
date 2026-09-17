@@ -17,8 +17,14 @@ def normalize_version(v: Optional[str]) -> Optional[str]:
     return v
 
 def tokenize(text: str) -> List[str]:
-    # Extract words and code identifiers
-    tokens = re.findall(r"[a-zA-Z0-9_\-\./:]+", text.lower())
+    # Extract unigrams as well as combined code identifiers
+    raw_tokens = re.findall(r"[a-zA-Z0-9_\-\./:]+", text.lower())
+    tokens = []
+    for t in raw_tokens:
+        tokens.append(t)
+        sub_parts = re.findall(r"[a-zA-Z0-9]+", t)
+        if len(sub_parts) > 1:
+            tokens.extend(sub_parts)
     return tokens
 
 class VectorDatabase:

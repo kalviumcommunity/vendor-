@@ -11,7 +11,8 @@ from .routes import (
     migration,
     evaluation,
     monitoring,
-    conversations
+    conversations,
+    admin
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(name)s - %(message)s")
@@ -41,6 +42,7 @@ app.include_router(migration.router, prefix=settings.API_PREFIX)
 app.include_router(evaluation.router, prefix=settings.API_PREFIX)
 app.include_router(monitoring.router, prefix=settings.API_PREFIX)
 app.include_router(conversations.router, prefix=settings.API_PREFIX)
+app.include_router(admin.router, prefix=settings.API_PREFIX)
 
 @app.get("/api/health")
 async def health_check():

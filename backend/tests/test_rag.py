@@ -62,3 +62,40 @@ def test_evaluation_benchmarks():
     assert data["retrieval_accuracy"] >= 80.0
     assert data["citation_accuracy"] >= 80.0
     assert data["total_tests"] > 0
+
+def test_admin_auth_and_add_api():
+    # 1. Invalid password
+    res_bad = client.post("/api/admin/login", json={"password": "wrong_password"})
+    assert res_bad.status_code == 401
+
+    # 2. Valid password (admin123)
+    res_ok = client.post("/api/admin/login", json={"password": "admin123"})
+    assert res_ok.status_code == 200
+    token = res_ok.json()["token"]
+
+    # 3. Add custom API endpoint dynamically
+    add_res = client.post(
+        "/api/admin/add-api-endpoint",
+        headers={"x-admin-token": token},
+        json={
+            "title": "Custom Payments Gateway",
+            "version": "v3.0",
+            "document_type": "api_reference",
+            "method": "POST",
+            "path": "/api/v3/payments/custom-charge",
+            "section": "Payments",
+            "description": "Custom billing charge endpoint for NovaAPI v3.",
+            "headers": [{"key": "Authorization", "value": "Bearer <token>"}],
+            "request_params": [{"name": "amount", "type": "integer", "required": True, "description": "Amount in cents"}],
+            "request_body": "{\"amount\": 5000}",
+            "response_body": "{\"charge_id\": \"ch_991823\"}"
+        }
+    )
+    assert add_res.status_code == 200
+    assert add_res.json()["status"] == "success"
+
+    # 4. Verify search retrieves newly created custom API
+    search_res = client.get("/api/search?q=custom-charge&version=v3.0")
+    assert search_res.status_code == 200
+    assert len(search_res.json()["results"]) > 0
+

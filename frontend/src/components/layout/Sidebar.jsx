@@ -32,6 +32,7 @@ export const Sidebar = () => {
     { label: 'Versions', path: '/versions', icon: Layers },
     { label: 'Sources', path: '/admin', icon: Database },
     { label: 'Upload Documents', path: '/upload', icon: UploadCloud },
+    { label: 'Admin Portal', path: '/admin-portal', icon: ShieldCheck, badge: 'Password' },
     { label: 'Evaluation', path: '/evaluation', icon: CheckCircle2, badge: '96.4%' },
     { label: 'Monitoring', path: '/monitoring', icon: Activity },
   ];

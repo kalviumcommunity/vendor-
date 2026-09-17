@@ -16,6 +16,7 @@ import { MigrationPage } from './pages/MigrationPage';
 import { ChangelogPage } from './pages/ChangelogPage';
 import { UploadPage } from './pages/UploadPage';
 import { AdminPage } from './pages/AdminPage';
+import { AdminPortalPage } from './pages/AdminPortalPage';
 import { EvaluationPage } from './pages/EvaluationPage';
 import { MonitoringPage } from './pages/MonitoringPage';
 
@@ -46,6 +47,7 @@ export function App() {
                   <Route path="/changelog" element={<ChangelogPage />} />
                   <Route path="/upload" element={<UploadPage />} />
                   <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin-portal" element={<AdminPortalPage />} />
                   <Route path="/evaluation" element={<EvaluationPage />} />
                   <Route path="/monitoring" element={<MonitoringPage />} />
                 </Routes>

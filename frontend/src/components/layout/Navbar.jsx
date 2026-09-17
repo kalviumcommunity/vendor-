@@ -89,6 +89,19 @@ export const Navbar = () => {
             <span>AI Assistant</span>
           </Link>
 
+          <Link
+            to="/admin-portal"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              isCurrent('/admin-portal')
+                ? 'bg-amber-500 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+            }`}
+            title="Password Protected Admin Portal"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">Admin</span>
+          </Link>
+
         </div>
 
       </div>
