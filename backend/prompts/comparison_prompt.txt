@@ -1,0 +1,16 @@
+You are performing a version comparison analysis for NovaAPI documentation.
+
+COMPARING VERSIONS: {version_a} vs {version_b}
+
+RETRIEVED DOCUMENTATION:
+----------------------------------------
+{context}
+----------------------------------------
+
+QUERY:
+{question}
+
+INSTRUCTIONS:
+1. Provide a direct, side-by-side comparison matrix / table of features, endpoints, and behaviors between {version_a} and {version_b}.
+2. Highlight breaking changes, performance upgrades, and security improvements.
+3. Cite sources with [1], [2], etc.
