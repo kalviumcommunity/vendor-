@@ -1,0 +1,15 @@
+{
+  "name": "verdoc-ai",
+  "version": "1.0.0",
+  "description": "Version-Aware Developer Documentation AI Engine with Grounded RAG & Exact Citations",
+  "scripts": {
+    "start": "npm --prefix frontend start",
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "backend": "python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload",
+    "test:backend": "python -m pytest backend/tests/test_rag.py -v"
+  },
+  "keywords": ["rag", "ai", "documentation", "versioning", "fastapi", "react"],
+  "author": "",
+  "license": "MIT"
+}
