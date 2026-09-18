@@ -115,7 +115,7 @@ npm install
 # Start Vite developer server
 npm run dev
 ```
-*Frontend opens at `http://localhost:5173`*
+*Frontend opens at `http://localhost:3000`*
 
 ---
 
