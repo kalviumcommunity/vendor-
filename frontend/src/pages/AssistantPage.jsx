@@ -7,6 +7,9 @@ import {
   CheckCircle2, 
   ExternalLink, 
   Copy, 
+  Check,
+  Download,
+  FileDown,
   RotateCcw, 
   Plus, 
   Trash2, 
@@ -22,6 +25,7 @@ import {
 import { useDoc } from '../context/DocContext';
 import { useChat } from '../context/ChatContext';
 import { CodeBlock } from '../components/ui/CodeBlock';
+import { downloadFile, copyToClipboard } from '../utils/downloadHelper';
 
 export const AssistantPage = () => {
   const { selectedVersion, setSelectedVersion, selectedDocType, setSelectedDocType, versions, openSourceInspector } = useDoc();
@@ -41,7 +45,64 @@ export const AssistantPage = () => {
   const [inputQuery, setInputQuery] = useState('');
   const [expandedSources, setExpandedSources] = useState({}); // { msgId: boolean }
   const [convSearch, setConvSearch] = useState('');
+  const [copiedMsgId, setCopiedMsgId] = useState(null);
   const messagesEndRef = useRef(null);
+
+  const handleCopyMessage = async (msg) => {
+    let textToCopy = msg.text;
+    if (msg.sources && msg.sources.length > 0) {
+      textToCopy += '\n\n---\nSources:\n' + msg.sources.map(s => `- [${s.index}] ${s.document} (${s.version}, ${s.section}, p.${s.page})`).join('\n');
+    }
+    const success = await copyToClipboard(textToCopy);
+    if (success) {
+      setCopiedMsgId(msg.id);
+      setTimeout(() => setCopiedMsgId(null), 2000);
+    }
+  };
+
+  const handleDownloadMessage = (msg) => {
+    let md = `# NovaAPI Documentation Response (${msg.version || 'v3.0'})\n\n`;
+    md += `**Timestamp**: ${msg.timestamp}\n`;
+    md += `**Grounded Confidence**: ${msg.confidence || 96}%\n\n`;
+    md += `## AI Answer\n\n${msg.text}\n\n`;
+    if (msg.sources && msg.sources.length > 0) {
+      md += `## Supporting Verified Sources\n\n`;
+      msg.sources.forEach(s => {
+        md += `### [${s.index}] ${s.document} (${s.version})\n`;
+        md += `- **Section**: ${s.section}\n`;
+        md += `- **Page**: ${s.page}\n`;
+        md += `- **Chunk ID**: \`${s.chunk_id}\`\n`;
+        md += `- **Relevance**: ${s.relevance}%\n\n`;
+        md += `> ${s.text}\n\n`;
+      });
+    }
+    downloadFile(md, `nova_doc_ai_response_${msg.version || 'v3'}_${Date.now()}.md`);
+  };
+
+  const handleExportFullChat = () => {
+    if (messages.length === 0) return;
+    let md = `# NovaDoc AI Conversation Export\n`;
+    md += `**Generated**: ${new Date().toLocaleString()}\n`;
+    md += `**Target Version**: ${selectedVersion}\n\n---\n\n`;
+
+    messages.forEach(m => {
+      if (m.sender === 'user') {
+        md += `### 👤 User (${m.version || selectedVersion}):\n${m.text}\n\n`;
+      } else {
+        md += `### 🤖 NovaDoc AI (${m.version || selectedVersion}):\n${m.text}\n\n`;
+        if (m.sources && m.sources.length > 0) {
+          md += `**Sources**:\n`;
+          m.sources.forEach(s => {
+            md += `- [${s.index}] ${s.document} (${s.section}, p.${s.page}, #${s.chunk_id})\n`;
+          });
+          md += '\n';
+        }
+      }
+      md += `---\n\n`;
+    });
+
+    downloadFile(md, `novadoc_conversation_${selectedVersion}_${Date.now()}.md`);
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -217,6 +278,18 @@ export const AssistantPage = () => {
               ))}
             </div>
 
+            {/* Export Chat Button */}
+            {messages.length > 0 && (
+              <button
+                onClick={handleExportFullChat}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs transition-colors"
+                title="Download full conversation as Markdown"
+              >
+                <FileDown className="w-3.5 h-3.5 text-brand-600" />
+                <span>Export Chat</span>
+              </button>
+            )}
+
           </div>
 
         </div>
@@ -282,14 +355,47 @@ export const AssistantPage = () => {
                           : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-sm shadow-card space-y-3'
                       }`}
                     >
-                      {/* Version tag header */}
+                      {/* Version tag header & Copy/Download actions */}
                       <div className="flex items-center justify-between text-[11px] pb-1 border-b border-slate-100">
                         <span className={`font-semibold font-mono ${isUser ? 'text-slate-300' : 'text-slate-500'}`}>
                           Version Context: {msg.version || selectedVersion}
                         </span>
-                        <span className={`text-[10px] ${isUser ? 'text-slate-400' : 'text-slate-400'}`}>
-                          {msg.timestamp}
-                        </span>
+                        
+                        <div className="flex items-center gap-2">
+                          {isAi && msg.text && (
+                            <>
+                              <button
+                                onClick={() => handleCopyMessage(msg)}
+                                className="flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-900 px-1.5 py-0.5 rounded hover:bg-slate-100 transition-colors"
+                                title="Copy answer"
+                              >
+                                {copiedMsgId === msg.id ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <span className="text-emerald-600">Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                onClick={() => handleDownloadMessage(msg)}
+                                className="flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-900 px-1.5 py-0.5 rounded hover:bg-slate-100 transition-colors"
+                                title="Download answer as Markdown (.md)"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Download</span>
+                              </button>
+                            </>
+                          )}
+                          <span className={`text-[10px] ${isUser ? 'text-slate-400' : 'text-slate-400'}`}>
+                            {msg.timestamp}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Content */}

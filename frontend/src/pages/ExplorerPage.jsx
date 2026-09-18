@@ -7,15 +7,19 @@ import {
   Sparkles, 
   ChevronRight, 
   FileText, 
-  ExternalLink,
-  Tag,
-  Clock,
-  CheckCircle2,
-  GitBranch
+  ExternalLink, 
+  Tag, 
+  Clock, 
+  CheckCircle2, 
+  GitBranch,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import { useDoc } from '../context/DocContext';
 import { useChat } from '../context/ChatContext';
 import { useNavigate } from 'react-router-dom';
+import { downloadFile, copyToClipboard } from '../utils/downloadHelper';
 
 export const ExplorerPage = () => {
   const { selectedVersion, setSelectedVersion, versions, openSourceInspector } = useDoc();
@@ -27,6 +31,7 @@ export const ExplorerPage = () => {
   const [activeDocDetail, setActiveDocDetail] = useState(null);
   const [filterQuery, setFilterQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copiedDoc, setCopiedDoc] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:8000/api/documents')
@@ -57,6 +62,21 @@ export const ExplorerPage = () => {
       sendMessage(`Explain the core requirements and endpoints in ${activeDocDetail.title} for version ${activeDocDetail.version}.`, activeDocDetail.version);
       navigate('/assistant');
     }
+  };
+
+  const handleCopyDoc = async () => {
+    if (!activeDocDetail?.content) return;
+    const success = await copyToClipboard(activeDocDetail.content);
+    if (success) {
+      setCopiedDoc(true);
+      setTimeout(() => setCopiedDoc(false), 2000);
+    }
+  };
+
+  const handleDownloadDoc = () => {
+    if (!activeDocDetail?.content) return;
+    const filename = `${activeDocDetail.id || 'document'}_${activeDocDetail.version || 'v3.0'}.md`;
+    downloadFile(activeDocDetail.content, filename);
   };
 
   const filteredDocs = documents.filter(d => 
@@ -170,13 +190,31 @@ export const ExplorerPage = () => {
                   <h1 className="text-2xl font-bold text-slate-900">{activeDocDetail.title}</h1>
                 </div>
 
-                <button
-                  onClick={handleAskAIAboutThisPage}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Ask AI About This Page</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={handleCopyDoc}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all shadow-2xs"
+                    title="Copy entire document content"
+                  >
+                    {copiedDoc ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedDoc ? 'Copied' : 'Copy Doc'}</span>
+                  </button>
+                  <button
+                    onClick={handleDownloadDoc}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all shadow-2xs"
+                    title="Download document as Markdown (.md)"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download (.md)</span>
+                  </button>
+                  <button
+                    onClick={handleAskAIAboutThisPage}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Ask AI About This Page</span>
+                  </button>
+                </div>
               </div>
 
               {/* Chunks overview pills */}

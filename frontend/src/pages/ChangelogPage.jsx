@@ -11,11 +11,15 @@ import {
   CheckCircle2, 
   Ban, 
   Wrench,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import { useDoc } from '../context/DocContext';
 import { useChat } from '../context/ChatContext';
 import { useNavigate } from 'react-router-dom';
+import { downloadFile, copyToClipboard } from '../utils/downloadHelper';
 
 export const ChangelogPage = () => {
   const { setSelectedVersion } = useDoc();
@@ -24,6 +28,7 @@ export const ChangelogPage = () => {
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [versionFilter, setVersionFilter] = useState('All');
+  const [copiedRelIdx, setCopiedRelIdx] = useState(null);
 
   const releases = [
     {
@@ -117,6 +122,30 @@ export const ChangelogPage = () => {
     const vPrefix = rel.version.slice(0, 2) + '.0';
     sendMessage(`Summarize all major additions and breaking changes introduced in NovaAPI release ${rel.version} (${rel.date}).`, vPrefix, 'changelog');
     navigate('/assistant');
+  };
+
+  const handleCopyRelease = async (rel, idx) => {
+    let md = `# NovaAPI Release ${rel.version} (${rel.date})\n\n`;
+    md += `**Highlights**: ${rel.highlights}\n\n`;
+    md += `## Changes\n`;
+    rel.changes.forEach(c => {
+      md += `- [${c.type.toUpperCase()}] ${c.text}\n`;
+    });
+    const success = await copyToClipboard(md);
+    if (success) {
+      setCopiedRelIdx(idx);
+      setTimeout(() => setCopiedRelIdx(null), 2000);
+    }
+  };
+
+  const handleDownloadRelease = (rel) => {
+    let md = `# NovaAPI Release ${rel.version} (${rel.date})\n\n`;
+    md += `**Highlights**: ${rel.highlights}\n\n`;
+    md += `## Changes\n`;
+    rel.changes.forEach(c => {
+      md += `- [${c.type.toUpperCase()}] ${c.text}\n`;
+    });
+    downloadFile(md, `nova_api_release_${rel.version}.md`);
   };
 
   const getTagBadge = (type) => {
@@ -217,13 +246,31 @@ export const ChangelogPage = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => handleAskAboutRelease(rel)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-lg border border-brand-200/70 transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Ask AI About This Release</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => handleCopyRelease(rel, idx)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 text-xs font-medium rounded-lg border border-slate-200 transition-colors"
+                    title="Copy release notes"
+                  >
+                    {copiedRelIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedRelIdx === idx ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  <button
+                    onClick={() => handleDownloadRelease(rel)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 text-xs font-medium rounded-lg border border-slate-200 transition-colors"
+                    title="Download release notes as Markdown (.md)"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download (.md)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAskAboutRelease(rel)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-lg border border-brand-200/70 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Ask AI About This Release</span>
+                  </button>
+                </div>
               </div>
 
               <p className="text-xs text-slate-600 italic">

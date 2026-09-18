@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, FileText, CheckCircle2, Copy, Hash, Layers, BookOpen } from 'lucide-react';
+import { X, ExternalLink, FileText, CheckCircle2, Copy, Hash, Layers, BookOpen, Download, Check } from 'lucide-react';
 import { useDoc } from '../../context/DocContext';
+import { downloadFile, copyToClipboard } from '../../utils/downloadHelper';
 
 export const SourceDrawer = () => {
   const { sourceViewerDoc, closeSourceInspector } = useDoc();
   const [copiedChunkId, setCopiedChunkId] = useState(false);
+  const [copiedChunkText, setCopiedChunkText] = useState(false);
   const [fullDocData, setFullDocData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -36,6 +38,31 @@ export const SourceDrawer = () => {
     navigator.clipboard.writeText(sourceViewerDoc.chunk_id || '');
     setCopiedChunkId(true);
     setTimeout(() => setCopiedChunkId(false), 2000);
+  };
+
+  const handleCopyChunkText = async () => {
+    if (!sourceViewerDoc.text) return;
+    const textToCopy = `### ${sourceViewerDoc.document || sourceViewerDoc.title} (${sourceViewerDoc.version})\n- Section: ${sourceViewerDoc.section}\n- Page: ${sourceViewerDoc.page}\n- Chunk ID: ${sourceViewerDoc.chunk_id}\n\n${sourceViewerDoc.text}`;
+    const success = await copyToClipboard(textToCopy);
+    if (success) {
+      setCopiedChunkText(true);
+      setTimeout(() => setCopiedChunkText(false), 2000);
+    }
+  };
+
+  const handleDownloadChunk = () => {
+    let md = `# Source Citation: ${sourceViewerDoc.document || sourceViewerDoc.title}\n\n`;
+    md += `- **Version**: ${sourceViewerDoc.version}\n`;
+    md += `- **Section**: ${sourceViewerDoc.section}\n`;
+    md += `- **Page**: ${sourceViewerDoc.page}\n`;
+    md += `- **Chunk ID**: \`${sourceViewerDoc.chunk_id}\`\n`;
+    md += `- **Relevance**: ${sourceViewerDoc.relevance}%\n\n`;
+    md += `## Cited Grounding Chunk Content\n\n\`\`\`\n${sourceViewerDoc.text}\n\`\`\`\n\n`;
+    if (fullDocData?.content) {
+      md += `## Full Document Context\n\n${fullDocData.content}\n`;
+    }
+    const filename = `citation_${sourceViewerDoc.chunk_id?.replace('#', '') || 'chunk'}_${sourceViewerDoc.version || 'v3.0'}.md`;
+    downloadFile(md, filename);
   };
 
   return (
@@ -91,18 +118,37 @@ export const SourceDrawer = () => {
         </div>
 
         {/* Chunk Identifier Tag */}
-        <div className="px-4 py-2.5 bg-amber-50/60 border-b border-amber-200/50 flex items-center justify-between text-xs">
+        <div className="px-4 py-2.5 bg-amber-50/60 border-b border-amber-200/50 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-1.5 text-amber-900 font-mono text-[11px]">
             <Hash className="w-3.5 h-3.5 text-amber-600" />
             <span className="font-semibold">{sourceViewerDoc.chunk_id || '#chunk-auto-01'}</span>
           </div>
-          <button
-            onClick={handleCopyChunkId}
-            className="flex items-center gap-1 text-[11px] text-amber-700 hover:text-amber-900 font-medium"
-          >
-            {copiedChunkId ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedChunkId ? 'Copied' : 'Copy ID'}</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleCopyChunkId}
+              className="flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-950 font-medium px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
+              title="Copy chunk ID"
+            >
+              {copiedChunkId ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedChunkId ? 'Copied' : 'Copy ID'}</span>
+            </button>
+            <button
+              onClick={handleCopyChunkText}
+              className="flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-950 font-medium px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
+              title="Copy citation and chunk text"
+            >
+              {copiedChunkText ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedChunkText ? 'Copied Citation' : 'Copy Citation'}</span>
+            </button>
+            <button
+              onClick={handleDownloadChunk}
+              className="flex items-center gap-1 text-[11px] text-amber-800 hover:text-amber-950 font-medium px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
+              title="Download citation as Markdown file"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download (.md)</span>
+            </button>
+          </div>
         </div>
 
         {/* Document Content View */}

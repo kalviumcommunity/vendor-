@@ -11,12 +11,16 @@ import {
   ExternalLink,
   ChevronRight,
   Layers,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import { useDoc } from '../context/DocContext';
 import { useChat } from '../context/ChatContext';
 import { useNavigate } from 'react-router-dom';
 import { CodeBlock } from '../components/ui/CodeBlock';
+import { downloadFile, copyToClipboard } from '../utils/downloadHelper';
 
 export const MigrationPage = () => {
   const { openSourceInspector } = useDoc();
@@ -29,6 +33,7 @@ export const MigrationPage = () => {
   const [loading, setLoading] = useState(false);
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [assistantAnswer, setAssistantAnswer] = useState(null);
+  const [copiedGuide, setCopiedGuide] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -75,6 +80,36 @@ export const MigrationPage = () => {
     }
   };
 
+  const generateMigrationMarkdown = () => {
+    let md = `# Migration Guide: NovaAPI ${fromVer} to ${toVer}\n\n`;
+    md += `## 1. Major Breaking Changes\n\n`;
+    diffData?.breaking_changes?.forEach(bc => {
+      md += `- **${bc.title}**: ~${bc.old}~ ➔ **${bc.new}**\n`;
+    });
+    md += `\n## 2. New APIs in ${toVer}\n\n`;
+    diffData?.new_features?.forEach(nf => {
+      md += `- ${nf}\n`;
+    });
+    if (assistantAnswer) {
+      md += `\n## 3. AI Migration Recommendations\n\n${assistantAnswer.answer}\n`;
+    }
+    return md;
+  };
+
+  const handleCopyGuide = async () => {
+    const md = generateMigrationMarkdown();
+    const success = await copyToClipboard(md);
+    if (success) {
+      setCopiedGuide(true);
+      setTimeout(() => setCopiedGuide(false), 2000);
+    }
+  };
+
+  const handleDownloadGuide = () => {
+    const md = generateMigrationMarkdown();
+    downloadFile(md, `migration_guide_${fromVer}_to_${toVer}.md`);
+  };
+
   const getCodeSnippet = () => {
     if (fromVer === 'v2.0' && toVer === 'v3.0') {
       return {
@@ -118,14 +153,32 @@ export const MigrationPage = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => handleAskMigrationAssistant("authentication, parameters, and endpoints")}
-            disabled={assistantLoading}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-500/25 transition-all"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>{assistantLoading ? 'Analyzing Corpus...' : 'Ask Migration Assistant'}</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleCopyGuide}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all shadow-2xs"
+              title="Copy entire migration guide as Markdown"
+            >
+              {copiedGuide ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedGuide ? 'Copied Guide' : 'Copy Guide'}</span>
+            </button>
+            <button
+              onClick={handleDownloadGuide}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all shadow-2xs"
+              title="Download migration guide as Markdown (.md)"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Guide (.md)</span>
+            </button>
+            <button
+              onClick={() => handleAskMigrationAssistant("authentication, parameters, and endpoints")}
+              disabled={assistantLoading}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-500/25 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>{assistantLoading ? 'Analyzing Corpus...' : 'Ask Migration Assistant'}</span>
+            </button>
+          </div>
         </div>
 
         {/* FROM -> TO Selectors */}
