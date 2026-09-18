@@ -433,14 +433,30 @@ export const AdminPortalPage = () => {
       {activeTab === 'add_api' && (
         <form onSubmit={handleCreateAPIEndpoint} className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-card space-y-6">
           
-          <div className="border-b border-slate-100 pb-4 space-y-1">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-brand-600" />
-              <span>Publish New API Endpoint to Vector Corpus</span>
-            </h3>
-            <p className="text-xs text-slate-500">
-              The endpoint will be automatically parsed, converted into structured Markdown, chunked, and indexed into the RAG vector index.
-            </p>
+          <div className="border-b border-slate-100 pb-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Code2 className="w-4 h-4 text-brand-600" />
+                <span>Publish New API Endpoint to Vector Corpus</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                The endpoint will be automatically parsed, converted into structured Markdown, chunked, and indexed into the RAG vector index for <strong>{apiForm.version}</strong>.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 text-xs font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 rounded-lg">
+                Target: {apiForm.version}
+              </span>
+              <button
+                type="submit"
+                disabled={endpointLoading}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md shadow-brand-500/20 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add API to {apiForm.version}</span>
+              </button>
+            </div>
           </div>
 
           {/* Preset templates */}
@@ -803,7 +819,7 @@ export const AdminPortalPage = () => {
           <button
             type="submit"
             disabled={endpointLoading}
-            className="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {endpointLoading ? (
               <>
@@ -812,8 +828,8 @@ export const AdminPortalPage = () => {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
-                <span>Publish & Index API to {apiForm.version} Knowledge Base</span>
+                <Plus className="w-4 h-4" />
+                <span>+ Add & Index API to {apiForm.version} Knowledge Base</span>
               </>
             )}
           </button>

@@ -78,6 +78,8 @@ export const AdminPage = () => {
      d.document_type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const [selectedAdminVersion, setSelectedAdminVersion] = useState('v3.0');
+
   const versionCategories = [
     {
       version: 'v1.0',
@@ -131,12 +133,12 @@ export const AdminPage = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            to="/admin-portal?tab=add_api"
+            to={`/admin-portal?tab=add_api&version=${selectedAdminVersion}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
-            title="Add a custom API endpoint to any version"
+            title="Add a custom API endpoint to selected version"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Add API Endpoint</span>
+            <span>+ Add API ({selectedAdminVersion})</span>
           </Link>
 
           <Link
@@ -155,6 +157,43 @@ export const AdminPage = () => {
             <RotateCw className={`w-3.5 h-3.5 ${reindexing ? 'animate-spin' : ''}`} />
             <span>{reindexing ? 'Re-indexing...' : 'Re-index Corpus'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Quick Version Selection & Add API Toolbar */}
+      <div className="bg-gradient-to-r from-brand-50/80 to-indigo-50/80 border-2 border-brand-200/80 rounded-2xl p-5 shadow-subtle flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-600 animate-pulse" />
+            <h3 className="font-bold text-sm text-slate-900">Add API to Version Option</h3>
+          </div>
+          <p className="text-xs text-slate-600">
+            Choose which API version you want to add new endpoints to:
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Target Version:</span>
+            <select
+              value={selectedAdminVersion}
+              onChange={(e) => setSelectedAdminVersion(e.target.value)}
+              className="text-xs font-bold text-brand-800 bg-transparent focus:outline-none cursor-pointer font-mono"
+            >
+              <option value="v1.0">v1.0 (Legacy)</option>
+              <option value="v2.0">v2.0 (Stable)</option>
+              <option value="v3.0">v3.0 (Current Active)</option>
+              <option value="v4.0">v4.0 (Latest Enterprise)</option>
+            </select>
+          </div>
+
+          <Link
+            to={`/admin-portal?tab=add_api&version=${selectedAdminVersion}`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Add API to {selectedAdminVersion}</span>
+          </Link>
         </div>
       </div>
 
