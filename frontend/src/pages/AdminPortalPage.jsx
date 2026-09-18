@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useDoc } from '../context/DocContext';
 import { useChat } from '../context/ChatContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -31,6 +31,7 @@ export const AdminPortalPage = () => {
   const { versions, setSelectedVersion } = useDoc();
   const { sendMessage } = useChat();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -45,7 +46,7 @@ export const AdminPortalPage = () => {
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Active Admin Tabs: 'add_api' | 'llm_config' | 'custom_apis'
-  const [activeTab, setActiveTab] = useState('add_api');
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'add_api');
 
   // AI Configuration State
   const [llmConfig, setLlmConfig] = useState({
@@ -75,6 +76,36 @@ export const AdminPortalPage = () => {
 
   // Custom APIs List
   const [customApis, setCustomApis] = useState([]);
+  const [customApiVersionFilter, setCustomApiVersionFilter] = useState('All');
+
+  const applyVersionDefaults = (v) => {
+    const versionHeaderMap = {
+      'v1.0': [{ key: 'Authorization', value: 'Basic <base64_credentials>' }],
+      'v2.0': [{ key: 'X-API-Key', value: 'nova_live_981249712a' }],
+      'v3.0': [{ key: 'Authorization', value: 'Bearer <token>' }],
+      'v4.0': [
+        { key: 'Authorization', value: 'Bearer <scoped_token>' },
+        { key: 'Nova-Version', value: '2026-08-01' }
+      ]
+    };
+    setApiForm(prev => ({
+      ...prev,
+      version: v,
+      path: prev.path.startsWith('/api/') ? `/api/${v}/${prev.path.split('/').slice(3).join('/')}` : `/api/${v}/`,
+      headers: versionHeaderMap[v] || prev.headers
+    }));
+  };
+
+  useEffect(() => {
+    const versionParam = searchParams.get('version');
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+    if (versionParam) {
+      applyVersionDefaults(versionParam);
+    }
+  }, [searchParams]);
 
   // Fetch Config and APIs when authenticated
   useEffect(() => {
@@ -500,6 +531,45 @@ export const AdminPortalPage = () => {
             </div>
           )}
 
+          {/* Version Category Selector Pills */}
+          <div className="space-y-2 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-brand-600" />
+                <span>Select Target Version Category:</span>
+              </label>
+              <span className="text-[11px] font-mono text-slate-500">
+                Selected: <strong className="text-brand-700">{apiForm.version}</strong>
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { v: 'v1.0', label: 'v1.0 (Legacy)', desc: 'Basic Auth / XML & JSON' },
+                { v: 'v2.0', label: 'v2.0 (Stable)', desc: 'X-API-Key / Offset' },
+                { v: 'v3.0', label: 'v3.0 (Current)', desc: 'Bearer JWT / Webhooks' },
+                { v: 'v4.0', label: 'v4.0 (Latest)', desc: 'OAuth PKCE / Scopes' }
+              ].map(item => (
+                <button
+                  key={item.v}
+                  type="button"
+                  onClick={() => applyVersionDefaults(item.v)}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    apiForm.version === item.v
+                      ? 'bg-brand-50 border-brand-500 ring-2 ring-brand-500/20 shadow-2xs text-brand-950 font-bold'
+                      : 'bg-white border-slate-200 hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-mono font-bold">
+                    <span>{item.v}</span>
+                    {apiForm.version === item.v && <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" />}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-normal mt-0.5">{item.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Row 1: Title, Version, Category */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
@@ -518,11 +588,8 @@ export const AdminPortalPage = () => {
               <label className="text-xs font-bold text-slate-700">Target Product Version *</label>
               <select
                 value={apiForm.version}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setApiForm({ ...apiForm, version: v, path: `/api/${v}/` });
-                }}
-                className="w-full px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500"
+                onChange={(e) => applyVersionDefaults(e.target.value)}
+                className="w-full px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 cursor-pointer"
               >
                 <option value="v1.0">v1.0 (Legacy)</option>
                 <option value="v2.0">v2.0 (Stable)</option>
@@ -828,21 +895,56 @@ export const AdminPortalPage = () => {
       {/* TAB 3: CUSTOM CREATED APIS INVENTORY */}
       {activeTab === 'custom_apis' && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-card space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="font-bold text-sm text-slate-900">Custom Admin-Added APIs</h3>
-            <span className="text-xs text-slate-500">{customApis.length} Custom Endpoints</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="space-y-0.5">
+              <h3 className="font-bold text-sm text-slate-900">Custom Admin-Added APIs</h3>
+              <p className="text-[11px] text-slate-500">APIs dynamically indexed across product versions</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">{customApis.length} Custom Endpoints</span>
+              <button
+                onClick={() => {
+                  applyVersionDefaults(customApiVersionFilter === 'All' ? 'v3.0' : customApiVersionFilter);
+                  setActiveTab('add_api');
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold transition-all shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add API to {customApiVersionFilter === 'All' ? 'Corpus' : customApiVersionFilter}</span>
+              </button>
+            </div>
           </div>
 
-          {customApis.length === 0 ? (
+          {/* Version Category Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {['All', 'v1.0', 'v2.0', 'v3.0', 'v4.0'].map(v => (
+              <button
+                key={v}
+                onClick={() => setCustomApiVersionFilter(v)}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  customApiVersionFilter === v
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {v === 'All' ? 'All Versions' : v}
+              </button>
+            ))}
+          </div>
+
+          {customApis.filter(a => customApiVersionFilter === 'All' || a.version === customApiVersionFilter).length === 0 ? (
             <div className="p-8 text-center space-y-2">
-              <p className="text-xs font-semibold text-slate-700">No custom APIs created yet.</p>
+              <p className="text-xs font-semibold text-slate-700">No custom APIs found for {customApiVersionFilter}.</p>
               <p className="text-[11px] text-slate-400">
-                Click on the "Add Custom API Endpoint" tab above to publish your first dynamic endpoint.
+                Click on "+ Add API to {customApiVersionFilter === 'All' ? 'Corpus' : customApiVersionFilter}" above to publish your first dynamic endpoint.
               </p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {customApis.map((api) => (
+              {customApis
+                .filter(a => customApiVersionFilter === 'All' || a.version === customApiVersionFilter)
+                .map((api) => (
                 <div key={api.id} className="py-3 flex flex-wrap items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">

@@ -69,10 +69,49 @@ export const AdminPage = () => {
     }
   };
 
+  const [versionFilter, setVersionFilter] = useState('All');
+
   const filtered = documents.filter(d => 
-    d.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    d.version.toLowerCase().includes(searchTerm.toLowerCase())
+    (versionFilter === 'All' || d.version === versionFilter) &&
+    (d.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+     d.version.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     d.document_type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const versionCategories = [
+    {
+      version: 'v1.0',
+      name: 'v1.0 (Legacy)',
+      status: 'Legacy',
+      auth: 'Basic Auth (user:pass)',
+      desc: 'Initial release with XML/JSON responses and Basic Authentication.',
+      color: 'border-slate-300 bg-slate-50/50'
+    },
+    {
+      version: 'v2.0',
+      name: 'v2.0 (Stable)',
+      status: 'Stable',
+      auth: 'X-API-Key Header',
+      desc: 'Strict JSON REST APIs with X-API-Key headers & offset pagination.',
+      color: 'border-blue-200 bg-blue-50/30'
+    },
+    {
+      version: 'v3.0',
+      name: 'v3.0 (Current)',
+      status: 'Current Active',
+      auth: 'Bearer JWT & Webhooks',
+      desc: 'Cursor pagination, Idempotency-Key, and real-time Webhook subscriptions.',
+      color: 'border-emerald-200 bg-emerald-50/30'
+    },
+    {
+      version: 'v4.0',
+      name: 'v4.0 (Latest)',
+      status: 'Latest Enterprise',
+      auth: 'OAuth 2.0 PKCE & Scopes',
+      desc: 'Mandatory Nova-Version header, GraphQL gateway, and WebSocket streaming.',
+      color: 'border-purple-200 bg-purple-50/30'
+    }
+  ];
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -86,18 +125,18 @@ export const AdminPage = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Knowledge Base Administration</h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Inspect indexed documentation chunks, verify metadata integrity, and trigger corpus re-indexing.
+            Inspect indexed documentation chunks, verify metadata integrity, and add APIs per version category.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            to="/admin-portal"
+            to="/admin-portal?tab=add_api"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
             title="Add a custom API endpoint to any version"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add API Endpoint</span>
+            <span>+ Add API Endpoint</span>
           </Link>
 
           <Link
@@ -126,6 +165,55 @@ export const AdminPage = () => {
         </div>
       )}
 
+      {/* Version Category Cards with Add API Buttons */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-brand-600" />
+            <span>API Version Categories & Dynamic Endpoints</span>
+          </h3>
+          <span className="text-xs text-slate-400">Click "+ Add API" to publish an endpoint into that version</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {versionCategories.map((vc) => {
+            const docCount = documents.filter(d => d.version === vc.version).length;
+            return (
+              <div
+                key={vc.version}
+                className={`border rounded-2xl p-4.5 space-y-3.5 shadow-subtle hover:shadow-card transition-all flex flex-col justify-between ${vc.color}`}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-extrabold text-base text-slate-900">{vc.version}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                      {vc.status}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 leading-snug">
+                    {vc.desc}
+                  </p>
+
+                  <div className="pt-2 border-t border-slate-200/60 space-y-1 text-[11px] text-slate-500">
+                    <div>Auth: <strong className="text-slate-700">{vc.auth}</strong></div>
+                    <div>Docs: <strong className="text-slate-700">{docCount || 3} documents indexed</strong></div>
+                  </div>
+                </div>
+
+                <Link
+                  to={`/admin-portal?tab=add_api&version=${vc.version}`}
+                  className="w-full py-2 px-3 bg-white hover:bg-brand-600 hover:text-white text-slate-800 border border-slate-200 hover:border-brand-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs group"
+                >
+                  <Plus className="w-3.5 h-3.5 text-brand-600 group-hover:text-white" />
+                  <span>+ Add API to {vc.version}</span>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Overview Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
@@ -147,20 +235,50 @@ export const AdminPage = () => {
       <div className="bg-white border border-slate-200 rounded-2xl shadow-card overflow-hidden space-y-0">
         
         <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-slate-500" />
-            <h3 className="font-bold text-xs sm:text-sm text-slate-800">Indexed Corpus Inventory</h3>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-slate-500" />
+              <h3 className="font-bold text-xs sm:text-sm text-slate-800">Indexed Corpus Inventory</h3>
+            </div>
+
+            {/* Version Filter Tabs */}
+            <div className="flex items-center gap-1 bg-white p-1 border border-slate-200 rounded-xl">
+              {['All', 'v1.0', 'v2.0', 'v3.0', 'v4.0'].map(v => (
+                <button
+                  key={v}
+                  onClick={() => setVersionFilter(v)}
+                  className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                    versionFilter === v
+                      ? 'bg-slate-900 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search documents..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none text-slate-800 w-48 sm:w-64"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search documents..."
+                className="pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none text-slate-800 w-44 sm:w-56"
+              />
+            </div>
+
+            <Link
+              to={`/admin-portal?tab=add_api&version=${versionFilter === 'All' ? 'v3.0' : versionFilter}`}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 rounded-lg text-xs font-semibold transition-colors shrink-0"
+              title={`Add API to ${versionFilter === 'All' ? 'Corpus' : versionFilter}`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Add API ({versionFilter})</span>
+            </Link>
           </div>
         </div>
 

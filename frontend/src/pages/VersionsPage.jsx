@@ -8,7 +8,8 @@ import {
   Lock, 
   Zap, 
   FileText,
-  Sparkles
+  Sparkles,
+  Plus
 } from 'lucide-react';
 import { useDoc } from '../context/DocContext';
 import { Link } from 'react-router-dom';
@@ -117,23 +118,34 @@ export const VersionsPage = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => setSelectedVersion(v.version)}
-                className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                  isSelected
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800'
-                }`}
-              >
-                {isSelected ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Active Context</span>
-                  </>
-                ) : (
-                  <span>Set as Active Version</span>
-                )}
-              </button>
+              <div className="space-y-1.5 pt-1">
+                <button
+                  onClick={() => setSelectedVersion(v.version)}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800'
+                  }`}
+                >
+                  {isSelected ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Active Context</span>
+                    </>
+                  ) : (
+                    <span>Set as Active Version</span>
+                  )}
+                </button>
+
+                <Link
+                  to={`/admin-portal?tab=add_api&version=${v.version}`}
+                  className="w-full py-1.5 px-3 bg-white hover:bg-brand-50 text-brand-700 hover:text-brand-800 border border-brand-200/80 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+                  title={`Add custom API endpoint to ${v.version}`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add API to {v.version}</span>
+                </Link>
+              </div>
             </div>
           );
         })}
