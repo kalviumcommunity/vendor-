@@ -90,7 +90,24 @@ export const AdminPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/admin-portal"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
+            title="Add a custom API endpoint to any version"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add API Endpoint</span>
+          </Link>
+
+          <Link
+            to="/upload"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Upload Document</span>
+          </Link>
+
           <button
             onClick={handleReindexAll}
             disabled={reindexing}
@@ -99,14 +116,6 @@ export const AdminPage = () => {
             <RotateCw className={`w-3.5 h-3.5 ${reindexing ? 'animate-spin' : ''}`} />
             <span>{reindexing ? 'Re-indexing...' : 'Re-index Corpus'}</span>
           </button>
-
-          <Link
-            to="/upload"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Upload Document</span>
-          </Link>
         </div>
       </div>
 

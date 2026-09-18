@@ -346,13 +346,26 @@ export const AdminPortalPage = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors"
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>Lock Admin Session</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setActiveTab('add_api');
+              window.scrollTo({ top: 150, behavior: 'smooth' });
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Add New API</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Lock Admin</span>
+          </button>
+        </div>
       </div>
 
       {/* Admin Navigation Tabs */}
@@ -397,6 +410,87 @@ export const AdminPortalPage = () => {
             <p className="text-xs text-slate-500">
               The endpoint will be automatically parsed, converted into structured Markdown, chunked, and indexed into the RAG vector index.
             </p>
+          </div>
+
+          {/* Preset templates */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 pb-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick Presets:</span>
+            <button
+              type="button"
+              onClick={() => setApiForm({
+                title: 'Create Payment Intent',
+                version: 'v3.0',
+                document_type: 'api_reference',
+                method: 'POST',
+                path: '/api/v3/payments/intent',
+                section: 'Payments & Billing',
+                description: 'Initializes a secure checkout payment intent with dynamic idempotency key and currency handling.',
+                headers: [
+                  { key: 'Authorization', value: 'Bearer <token>' },
+                  { key: 'Idempotency-Key', value: 'idem_99218204' }
+                ],
+                request_params: [
+                  { name: 'amount', type: 'integer', required: true, description: 'Amount in smallest currency unit (e.g. cents)' },
+                  { name: 'currency', type: 'string', required: true, description: 'Three-letter ISO currency code (USD, EUR, GBP)' },
+                  { name: 'customer_id', type: 'string', required: true, description: 'Customer identifier (cus_...)' }
+                ],
+                request_body: '{\n  "amount": 4900,\n  "currency": "usd",\n  "customer_id": "cus_9941a82"\n}',
+                response_body: '{\n  "id": "pi_live_89123",\n  "status": "requires_payment_method",\n  "amount": 4900,\n  "currency": "usd"\n}'
+              })}
+              className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            >
+              + Payment Intent API
+            </button>
+            <button
+              type="button"
+              onClick={() => setApiForm({
+                title: 'OAuth PKCE Token Exchange',
+                version: 'v4.0',
+                document_type: 'api_reference',
+                method: 'POST',
+                path: '/api/v4/oauth/token',
+                section: 'Authentication & Scopes',
+                description: 'Exchanges authorization code for a scoped access token using OAuth 2.0 PKCE verification.',
+                headers: [
+                  { key: 'Nova-Version', value: '2026-08-01' },
+                  { key: 'Content-Type', value: 'application/json' }
+                ],
+                request_params: [
+                  { name: 'grant_type', type: 'string', required: true, description: 'Must be authorization_code' },
+                  { name: 'code_verifier', type: 'string', required: true, description: 'Original unhashed PKCE code verifier' },
+                  { name: 'code', type: 'string', required: true, description: 'Authorization code issued by login flow' }
+                ],
+                request_body: '{\n  "grant_type": "authorization_code",\n  "code": "auth_code_9812",\n  "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"\n}',
+                response_body: '{\n  "access_token": "v4_pkce_eyJhbGciOi...",\n  "token_type": "Bearer",\n  "expires_in": 3600,\n  "scope": "users:read users:write"\n}'
+              })}
+              className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            >
+              + OAuth PKCE Token API
+            </button>
+            <button
+              type="button"
+              onClick={() => setApiForm({
+                title: 'Register Event Webhook',
+                version: 'v3.0',
+                document_type: 'api_reference',
+                method: 'POST',
+                path: '/api/v3/webhooks/endpoints',
+                section: 'Webhooks',
+                description: 'Subscribes an HTTPS URL to real-time asynchronous API state changes and webhooks.',
+                headers: [
+                  { key: 'Authorization', value: 'Bearer <token>' }
+                ],
+                request_params: [
+                  { name: 'url', type: 'string', required: true, description: 'Valid secure HTTPS endpoint' },
+                  { name: 'events', type: 'array', required: true, description: 'Array of event topic strings' }
+                ],
+                request_body: '{\n  "url": "https://example.com/api/webhooks",\n  "events": ["user.created", "payment.succeeded"]\n}',
+                response_body: '{\n  "webhook_id": "wh_sec_99182",\n  "status": "active",\n  "secret": "whsec_live_01823"\n}'
+              })}
+              className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+            >
+              + Webhooks API
+            </button>
           </div>
 
           {endpointSuccess && (
